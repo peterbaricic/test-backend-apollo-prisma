@@ -1,0 +1,57 @@
+version: '2.4'
+
+networks:
+  shared:
+    name: booknet
+
+services:
+  node:
+    build:
+      context: .
+      args:
+        - NODE_ENV=development
+    command: ../node_modules/.bin/nodemon --inspect=0.0.0.0:9229 ./src
+    ports:
+      - "4000:4000"
+      - "9929:9229"
+      - "9230:9230"
+    volumes:
+      - .:/opt/node_app/app:delegated
+      - ./package.json:/opt/node_app/package.json
+      - ./package-lock.json:/opt/node_app/package-lock.json
+      - notused:/opt/node_app/app/node_modules
+    environment:
+      - PORT=4000
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://root:bookovna@bookdb:3306/bookdb
+    depends_on:
+      bookdb:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+  bookdb:
+    image: mariadb:10.5
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 --user=root --password=bookovna
+    command:
+      [
+        'mysqld',
+        '--character-set-server=utf8',
+        '--collation-server=utf8_unicode_ci',
+        '--skip-character-set-client-handshake',
+      ]
+    init: true
+    ports:
+      - 3316:3306
+    environment:
+      MYSQL_DATABASE: bookdb
+      MYSQL_ROOT_PASSWORD: bookovna
+    volumes:
+      - bookdb:/var/lib/mysql
+      - ./db/001_init.sql:/docker-entrypoint-initdb.d/001.sql
+    stop_grace_period: 30s
+    restart: always
+
+volumes:
+  bookdb:
+  notused:

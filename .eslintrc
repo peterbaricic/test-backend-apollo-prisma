@@ -1,0 +1,16 @@
+{
+  "extends": [
+    "wesbos"
+  ],
+  "rules": {
+    "comma-dangle": 1,
+    "prettier/prettier": [
+      "error",
+      {
+        "trailingComma": "all",
+        "singleQuote": true,
+        "printWidth": 120
+      }
+    ]
+  }
+}
